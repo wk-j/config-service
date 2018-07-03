@@ -1,0 +1,27 @@
+2018-07-03 17:08:19.156 +07:00 [Information] User profile is available. Using '"/Users/wk/.aspnet/DataProtection-Keys"' as key repository; keys will not be encrypted at rest.
+2018-07-03 17:08:42.593 +07:00 [Information] Request starting HTTP/1.1 GET http://localhost:5000/api/search/hi  
+2018-07-03 17:08:42.731 +07:00 [Information] Route matched with "{action = \"Hi\", controller = \"Search\"}". Executing action "ConfigEditor.Controllers.SearchController.Hi (ConfigEditor)"
+2018-07-03 17:08:42.740 +07:00 [Information] Executing action method "ConfigEditor.Controllers.SearchController.Hi (ConfigEditor)" - Validation state: Valid
+2018-07-03 17:08:42.748 +07:00 [Information] Executed action "ConfigEditor.Controllers.SearchController.Hi (ConfigEditor)" in 13.704ms
+2018-07-03 17:08:42.778 +07:00 [Error] An unhandled exception has occurred while executing the request.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at ConfigEditor.Controllers.SearchController.Hi() in /Users/wk/Intern/ConfigEditorBackend/src/ConfigEditor/Controllers/SearchController.cs:line 17
+   at Microsoft.Extensions.Internal.ObjectMethodExecutor.<>c__DisplayClass33_0.<WrapVoidMethod>b__0(Object target, Object[] parameters)
+   at Microsoft.Extensions.Internal.ObjectMethodExecutor.Execute(Object target, Object[] parameters)
+   at Microsoft.AspNetCore.Mvc.Internal.ActionMethodExecutor.VoidResultExecutor.Execute(IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Internal.ControllerActionInvoker.InvokeActionMethodAsync()
+   at Microsoft.AspNetCore.Mvc.Internal.ControllerActionInvoker.InvokeNextActionFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Internal.ControllerActionInvoker.Rethrow(ActionExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.Internal.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Internal.ControllerActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Internal.ResourceInvoker.InvokeNextResourceFilter()
+   at Microsoft.AspNetCore.Mvc.Internal.ResourceInvoker.Rethrow(ResourceExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.Internal.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Internal.ResourceInvoker.InvokeFilterPipelineAsync()
+   at Microsoft.AspNetCore.Mvc.Internal.ResourceInvoker.InvokeAsync()
+   at Microsoft.AspNetCore.Builder.RouterMiddleware.Invoke(HttpContext httpContext)
+   at Microsoft.AspNetCore.Cors.Infrastructure.CorsMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware.Invoke(HttpContext context)
+2018-07-03 17:08:42.827 +07:00 [Information] Request finished in 235.618ms 500 text/html; charset=utf-8
+2018-07-03 17:08:42.860 +07:00 [Information] Request starting HTTP/1.1 GET http://localhost:5000/favicon.ico  
+2018-07-03 17:08:42.862 +07:00 [Information] Request finished in 1.849ms 404 
