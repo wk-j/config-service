@@ -7,6 +7,22 @@ using System.IO;
 using ConfigEditor.Utility;
 
 namespace ConfigEditor.Controllers {
+
+    public class SaveContentRequest {
+        public string Path { set; get; }
+        public string Content { set; get; }
+    }
+
+    public class GetContentResult {
+        public string Path { set; get; }
+        public string Content { set; get; }
+        public bool Success { set; get; }
+    }
+
+    public class SaveContentResult {
+        public bool Success { set; get; }
+    }
+
     [Route("api/[controller]/[action]")]
     public class SearchController : ControllerBase {
         private readonly AppSettings settings;
@@ -43,17 +59,35 @@ namespace ConfigEditor.Controllers {
             }
         }
 
+        [HttpPost]
+        public SaveContentResult SaveSettingContent([FromBody] SaveContentRequest request) {
+            var ok = appService.IsAllowToAccess(allowPaths, request.Path);
+
+            if (ok) {
+                System.IO.File.WriteAllText(request.Path, request.Content);
+                return new SaveContentResult {
+                    Success = true
+                };
+            } else {
+                return new SaveContentResult {
+                    Success = true
+                };
+            }
+        }
+
         [HttpGet]
-        public dynamic GetSettingContent(string path) {
+        public GetContentResult GetSettingContent(string path) {
             var ok = appService.IsAllowToAccess(allowPaths, path);
             if (ok) {
-                return new {
+                return new GetContentResult {
                     Success = true,
+                    Path = path,
                     Content = System.IO.File.ReadAllText(path)
                 };
             } else {
-                return new {
+                return new GetContentResult {
                     Success = false,
+                    Path = path,
                     Content = ""
                 };
             }
