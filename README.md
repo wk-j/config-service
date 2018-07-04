@@ -10,3 +10,7 @@ dotnet run --project src/ConfigEditor/ConfigEditor.csproj
 ```bash
 dotnet-script scripts/CreateFakeSettings.csx
 ```
+
+## Swagger UI
+
+- http://localhost:5000/swagger
