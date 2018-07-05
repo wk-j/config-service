@@ -1,7 +1,8 @@
- 
- namespace ConfigEditor.Content {
- public class GetContentResult { 
-     public string Path { set; get; } 
-     public string Content { set; get; } 
-     public bool Success { set; get; } 
- } }
+
+namespace ConfigEditor.Controllers {
+    public class GetContentResult {
+        public string Path { set; get; }
+        public string Content { set; get; }
+        public bool Success { set; get; }
+    }
+}
