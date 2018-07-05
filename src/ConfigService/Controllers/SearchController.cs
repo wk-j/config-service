@@ -8,7 +8,7 @@ using ConfigEditor.Utility;
 
 namespace ConfigEditor.Controllers {
 
-    
+
 
     [Route("api/[controller]/[action]")]
     public class SearchController : ControllerBase {
