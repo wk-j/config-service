@@ -1,5 +1,6 @@
 
- namespace ConfigEditor.Content {
- public class SaveContentResult { 
-     public bool Success { set; get; } 
- }}
+namespace ConfigEditor.Controllers {
+    public class SaveContentResult {
+        public bool Success { set; get; }
+    }
+}
