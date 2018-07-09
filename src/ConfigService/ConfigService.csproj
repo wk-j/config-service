@@ -2,10 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>wk-event-tracker</ToolCommandName>
+    <PackageId>ConfigEditor</PackageId>
+    <Version>0.1.0</Version>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
+    <EmbeddedResource Include="wwwroot/*" />
   </ItemGroup>
 
   <ItemGroup>

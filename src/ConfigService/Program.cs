@@ -23,6 +23,7 @@ namespace ConfigEditor
                 .WriteTo.RollingFile("logs/log-{Date}.log")
                 .CreateLogger();
             CreateWebHostBuilder(args).Build().Run();
+            
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
