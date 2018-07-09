@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using ConfigEditor.Models;
 using ConfigEditor.Utility;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -24,6 +26,8 @@ namespace ConfigEditor {
         public Startup(IConfiguration configuration, ILogger<Startup> logger) {
             Configuration = configuration;
             Logger = logger;
+            
+            
         }
 
         public IConfiguration Configuration { get; }
@@ -48,6 +52,19 @@ namespace ConfigEditor {
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env) {
+            var asm = Assembly.GetEntryAssembly();
+            var asmName = asm.GetName().Name;
+            var defaultOptions = new DefaultFilesOptions();
+            defaultOptions.DefaultFileNames.Clear();
+            defaultOptions.DefaultFileNames.Add("index.html");
+            defaultOptions.FileProvider = 
+            new EmbeddedFileProvider(asm, $"{asmName}.wwwroot");
+            app
+            .UseDefaultFiles(defaultOptions)
+            .UseStaticFiles(new StaticFileOptions {
+                FileProvider = 
+                new EmbeddedFileProvider(asm, $"{asmName}.wwwroot")
+            });
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
             } else {
