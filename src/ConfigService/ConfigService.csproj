@@ -1,25 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <PackAsTool>true</PackAsTool>
-    <ToolCommandName>bcircle-config-editor</ToolCommandName>
-    <PackageId>BCircle.ConfigEditor</PackageId>
-    <Version>0.1.0</Version>
-    <IsPackable>true</IsPackable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>bcircle-config-editor</ToolCommandName>
+        <PackageId>BCircle.ConfigEditor</PackageId>
+        <Version>0.1.0</Version>
+        <IsPackable>true</IsPackable>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="wwwroot/*" />
-  </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="wwwroot/*" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
-    <PackageReference Include="Serilog.AspNetCore" Version="2.1.1" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
-    <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="2.5.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.1" />
+        <PackageReference Include="Serilog.AspNetCore" Version="2.1.1" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+        <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="2.5.0" />
+    </ItemGroup>
 
 </Project>
