@@ -5,8 +5,13 @@ using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.IO;
 using ConfigEditor.Utility;
+using System;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace ConfigEditor.Controllers {
+
+
 
     [Route("api/[controller]/[action]")]
     public class SearchController : ControllerBase {
@@ -26,6 +31,8 @@ namespace ConfigEditor.Controllers {
             allowPaths = settings.Projects.Select(x => x.Path).ToList();
         }
 
+
+
         [HttpGet]
         public IEnumerable<string> GetProjectNames() {
             return settings.Projects.Select(x => x.Name);
@@ -36,12 +43,82 @@ namespace ConfigEditor.Controllers {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
             if (project == null) {
                 return Enumerable.Empty<string>();
-            } else {
-                var files = project.Patterns
-                    .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
-                    .SelectMany(x => x);
-                return files;
             }
+            var files = project.Patterns
+                .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
+                .SelectMany(x => x);
+            return files;
+            // 
+            // Read(project.Path);
+            //string lastFolderName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(((string[])files)[0].ToString())));
+            /* 
+            var qFolder = new QFolder();
+            qfolder.name = "adsfa";
+            qfolder.path = "dsaf";
+            var qFile = new QFile();
+            qFile.name = "asfds";
+            qFile.path = "asdfads"; 
+            qFolder.qFile = qFile;   
+
+        }
+
+        [HttpGet]
+        public GetFolder GetFolderAll(string Pathz) {
+            //string folderName = GetFolders(Path.GetDirectoryName(Path.GetDirectoryName(path)));
+
+            string mainFolder = Path.GetDirectoryName(Pathz);
+            GetFolder folderName = new GetFolder(mainFolder);
+            return folderName;
+
+            
+             public class QFolder {
+                public QFile qFile{ set; get; }
+                public QFolder qfolder{ set; get; }
+                public string name { set; get; }
+                public string path{ set; get; }
+            }
+            public class QFile {
+                public  string name { set; get; }
+                 public string path { set; get; }*/
+        }
+
+        private IEnumerable<Node> FindNode(DirectoryInfo root) {
+            foreach (var file in root.GetFiles()) {
+                if (file.Name.ToLower().EndsWith(".json")) {
+                    yield return new Node {
+                        IsRoot = false,
+                        Id = file.FullName.GetHashCode(),
+                        Name = file.Name,
+                        IsFile = true,
+                        Parent = root.FullName.GetHashCode()
+                    };
+                }
+            }
+
+            foreach (var item in root.GetDirectories()) {
+                yield return new Node {
+                    IsRoot = false,
+                    Id = item.FullName.GetHashCode(),
+                    Name = item.Name,
+                    Parent = root.FullName.GetHashCode()
+                };
+
+                foreach (var file in FindNode(item)) {
+                    yield return file;
+                }
+            }
+        }
+
+        [HttpGet]
+        public IEnumerable<Node> GetNodes(string path) {
+            var mainPath = Path.GetDirectoryName(path);
+            var dir = new DirectoryInfo(mainPath);
+            return FindNode(dir).Append(new Node {
+                IsRoot = true,
+                Name = dir.Name,
+                Parent = 0,
+                Id = dir.FullName.GetHashCode()
+            });
         }
 
         [HttpPost]
