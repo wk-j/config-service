@@ -17,9 +17,16 @@ foreach (var item in projects) {
 
     var path = Path.Combine("/tmp", item);
     if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-    foreach (var i in Enumerable.Range(1, 5)) {
+    foreach (var i in Enumerable.Range(1, 3)) {
         var str = i.ToString("D3");
-        var fullPath = Path.Combine(path, $"{str}-AppSettings.json");
-        File.WriteAllText(fullPath, json);
+
+        foreach (var itemA in new[] { "A1", "A2", "A3" }) {
+            var subFolder = Path.Combine(path, itemA);
+            if (!Directory.Exists(subFolder)) Directory.CreateDirectory(subFolder);
+
+            var fullPath = Path.Combine(subFolder, $"{str}-AppSettings.json");
+            File.WriteAllText(fullPath, json);
+        }
     }
+
 }
