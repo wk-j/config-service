@@ -48,40 +48,7 @@ namespace ConfigEditor.Controllers {
                 .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
                 .SelectMany(x => x);
             return files;
-            // 
-            // Read(project.Path);
-            //string lastFolderName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(((string[])files)[0].ToString())));
-            /* 
-            var qFolder = new QFolder();
-            qfolder.name = "adsfa";
-            qfolder.path = "dsaf";
-            var qFile = new QFile();
-            qFile.name = "asfds";
-            qFile.path = "asdfads"; 
-            qFolder.qFile = qFile;   
-
         }
-
-        [HttpGet]
-        public GetFolder GetFolderAll(string Pathz) {
-            //string folderName = GetFolders(Path.GetDirectoryName(Path.GetDirectoryName(path)));
-
-            string mainFolder = Path.GetDirectoryName(Pathz);
-            GetFolder folderName = new GetFolder(mainFolder);
-            return folderName;
-
-            
-             public class QFolder {
-                public QFile qFile{ set; get; }
-                public QFolder qfolder{ set; get; }
-                public string name { set; get; }
-                public string path{ set; get; }
-            }
-            public class QFile {
-                public  string name { set; get; }
-                 public string path { set; get; }*/
-        }
-
         private IEnumerable<Node> FindNode(DirectoryInfo root) {
             foreach (var file in root.GetFiles()) {
                 if (file.Name.ToLower().EndsWith(".json")) {
@@ -109,16 +76,19 @@ namespace ConfigEditor.Controllers {
             }
         }
 
-        [HttpGet]
+         [HttpGet]
         public IEnumerable<Node> GetNodes(string path) {
-            var mainPath = Path.GetDirectoryName(path);
-            var dir = new DirectoryInfo(mainPath);
+             var project = settings.Projects.FirstOrDefault(x => x.Path == path);
+            if (project == null) {
+                return Enumerable.Empty<Node>();
+            }
+            var dir = new DirectoryInfo(path);
             return FindNode(dir).Append(new Node {
                 IsRoot = true,
                 Name = dir.Name,
                 Parent = 0,
                 Id = dir.FullName.GetHashCode()
-            });
+            });   
         }
 
         [HttpPost]
