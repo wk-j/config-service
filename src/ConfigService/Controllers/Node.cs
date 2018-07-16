@@ -5,5 +5,6 @@ namespace ConfigEditor.Controllers {
         public int Id { set; get; }
         public string Name { set; get; }
         public int Parent { set; get; }
+        public string PathFile { set; get; }
     }
 }
