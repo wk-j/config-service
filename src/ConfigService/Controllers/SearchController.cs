@@ -49,6 +49,7 @@ namespace ConfigEditor.Controllers {
                 .SelectMany(x => x);
             return files;
         }
+
         private IEnumerable<Node> FindNode(DirectoryInfo root) {
             foreach (var file in root.GetFiles()) {
                 if (file.Name.ToLower().EndsWith(".json")) {
@@ -57,17 +58,20 @@ namespace ConfigEditor.Controllers {
                         Id = file.FullName.GetHashCode(),
                         Name = file.Name,
                         IsFile = true,
-                        Parent = root.FullName.GetHashCode()
+                        Parent = root.FullName.GetHashCode(),
+                        PathFile = file.FullName
                     };
                 }
             }
 
             foreach (var item in root.GetDirectories()) {
+                
                 yield return new Node {
                     IsRoot = false,
                     Id = item.FullName.GetHashCode(),
                     Name = item.Name,
-                    Parent = root.FullName.GetHashCode()
+                    Parent = root.FullName.GetHashCode(),
+                    PathFile = root.FullName
                 };
 
                 foreach (var file in FindNode(item)) {
@@ -76,8 +80,9 @@ namespace ConfigEditor.Controllers {
             }
         }
 
-         [HttpGet]
+        [HttpGet]
         public IEnumerable<Node> GetNodes(string path) {
+            //var mainPath = Path.GetDirectoryName(path);
              var project = settings.Projects.FirstOrDefault(x => x.Path == path);
             if (project == null) {
                 return Enumerable.Empty<Node>();
@@ -87,7 +92,8 @@ namespace ConfigEditor.Controllers {
                 IsRoot = true,
                 Name = dir.Name,
                 Parent = 0,
-                Id = dir.FullName.GetHashCode()
+                Id = dir.FullName.GetHashCode(),
+                PathFile = dir.FullName.ToString()
             });   
         }
 
