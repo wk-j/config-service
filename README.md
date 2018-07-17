@@ -13,6 +13,8 @@
 - [ ] [Cors](https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-2.1)
 - [ ] [EmbeddedFileProvider](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/file-providers?view=aspnetcore-2.1)
 - [ ] [Global Tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools)
+- [ ] [Travis](https://travis-ci.org)
+- [ ] [xUnit](https://xunit.github.io)
 
 ## Installation
 
