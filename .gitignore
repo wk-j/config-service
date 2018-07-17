@@ -10,5 +10,6 @@ packages
 tools
 publish
 logs
+wwwroot
 
 .paket
