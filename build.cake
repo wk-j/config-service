@@ -1,13 +1,44 @@
 #addin "wk.StartProcess"
+#addin "wk.ProjectParser"
 
 using PS = StartProcess.Processor;
-Task("Run").Does(() => {
-    PS.StartProcess("dotnet run --project src/ConfigService");
+using ProjectParser;
+
+var npi = EnvironmentVariable("oy2awz5kizmbzg4pzbiqcg2ifamf5wkeji6bb4gd2beity");
+var name = "ConfigService";
+
+var currentDir = new DirectoryInfo(".").FullName;
+var info = Parser.Parse($"src/{name}/{name}.csproj");
+var inter = "npm --prefix '/Users/surasak/src/config-interface' run build-all";
+
+Task("Pack").Does(() => {
+    CleanDirectory("/ConfigService/src/ConfigService/wwwroot");
+    CleanDirectory("publish");
+    PS.StartProcess(inter); /// /Users/surasak/src/config-interface
+    DotNetCorePack($"src/{name}", new DotNetCorePackSettings {
+        OutputDirectory = "publish"
+    });
 });
 
-Task("Watch").Does(() => {
-    PS.StartProcess("dotnet watch --project src/ConfigService/ConfigService.csproj run");
+Task("Publish-NuGet")
+    .IsDependentOn("Pack")
+    .Does(() => {
+        var nupkg = new DirectoryInfo("publish").GetFiles("*.nupkg").LastOrDefault();
+        var package = nupkg.FullName;
+        Console.WriteLine(nupkg.FullName);
+        NuGetPush(package, new NuGetPushSettings {
+            Source = "https://www.nuget.org/api/v2/package",
+            ApiKey = npi
+        });
 });
 
-var target = Argument("target", "Run");
+Task("Install")
+    .IsDependentOn("Pack")
+    .Does(() => {
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        PS.StartProcess($"dotnet tool uninstall -g {info.PackageId}");
+        PS.StartProcess($"dotnet tool install   -g {info.PackageId}  --add-source {currentDir}/publish --version {info.Version}");
+    });
+
+var target = Argument("target", "Pack");
 RunTarget(target);
