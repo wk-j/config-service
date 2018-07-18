@@ -43,10 +43,9 @@ namespace ConfigEditor {
                 Pass = x.Pass
             }).ToArray();
 
-            services.AddSwaggerGen(c =>
-            {
-            c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
-        });
+            services.AddSwaggerGen(c => {
+                c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
+            });
 
             services
                 .AddSingleton<AppSettings>(config)
@@ -56,19 +55,24 @@ namespace ConfigEditor {
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env) {
-            var asm = Assembly.GetEntryAssembly();
-            var asmName = asm.GetName().Name;
-            var defaultOptions = new DefaultFilesOptions();
-            defaultOptions.DefaultFileNames.Clear();
-            defaultOptions.DefaultFileNames.Add("index.html");
-            defaultOptions.FileProvider =
-            new EmbeddedFileProvider(asm, $"{asmName}.wwwroot");
-            app
-            .UseDefaultFiles(defaultOptions)
-            .UseStaticFiles(new StaticFileOptions {
-                FileProvider =
-                new EmbeddedFileProvider(asm, $"{asmName}.wwwroot")
-            });
+
+            if (env.IsProduction()) {
+                var asm = Assembly.GetEntryAssembly();
+                var asmName = asm.GetName().Name;
+                var defaultOptions = new DefaultFilesOptions();
+                defaultOptions.DefaultFileNames.Clear();
+                defaultOptions.DefaultFileNames.Add("index.html");
+                defaultOptions.FileProvider = new EmbeddedFileProvider(asm, $"{asmName}.wwwroot");
+
+                app.UseDefaultFiles(defaultOptions);
+                app.UseStaticFiles(new StaticFileOptions {
+                    FileProvider = new EmbeddedFileProvider(asm, $"{asmName}.wwwroot")
+                });
+            } else {
+                app.UseDefaultFiles();
+                app.UseStaticFiles();
+            }
+
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
             } else {
