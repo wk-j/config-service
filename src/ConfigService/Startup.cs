@@ -26,10 +26,9 @@ namespace ConfigEditor {
         public Startup(IConfiguration configuration, ILogger<Startup> logger) {
             Configuration = configuration;
             Logger = logger;
-            
-            
-        }
 
+
+        }
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services) {
@@ -39,10 +38,15 @@ namespace ConfigEditor {
                 Patterns = x.Patterns,
                 Name = new DirectoryInfo(x.Path).Name
             }).ToArray();
+            config.Login = config.Login.Select(x => new Login {
+                User = x.User,
+                Pass = x.Pass
+            }).ToArray();
 
-            services.AddSwaggerGen(c => {
-                c.SwaggerDoc("v1", new Info { Title = "EditorConfig API", Version = "v1" });
-            });
+            services.AddSwaggerGen(c =>
+            {
+            c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
+        });
 
             services
                 .AddSingleton<AppSettings>(config)
@@ -57,12 +61,12 @@ namespace ConfigEditor {
             var defaultOptions = new DefaultFilesOptions();
             defaultOptions.DefaultFileNames.Clear();
             defaultOptions.DefaultFileNames.Add("index.html");
-            defaultOptions.FileProvider = 
+            defaultOptions.FileProvider =
             new EmbeddedFileProvider(asm, $"{asmName}.wwwroot");
             app
             .UseDefaultFiles(defaultOptions)
             .UseStaticFiles(new StaticFileOptions {
-                FileProvider = 
+                FileProvider =
                 new EmbeddedFileProvider(asm, $"{asmName}.wwwroot")
             });
             if (env.IsDevelopment()) {
