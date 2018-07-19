@@ -62,6 +62,10 @@ namespace ConfigEditor.Controllers
             {
                 return Enumerable.Empty<string>();
             }
+            if (!Directory.Exists(project.Path)){
+                return Enumerable.Empty<string>();
+            }
+
             var files = project.Patterns
                 .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
                 .SelectMany(x => x);
@@ -112,6 +116,9 @@ namespace ConfigEditor.Controllers
             var project = settings.Projects.FirstOrDefault(x => x.Path == path);
             if (project == null)
             {
+                return Enumerable.Empty<Node>();
+            }
+            if (!Directory.Exists(project.Path)){
                 return Enumerable.Empty<Node>();
             }
             var dir = new DirectoryInfo(path);
