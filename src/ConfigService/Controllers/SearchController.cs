@@ -61,6 +61,8 @@ namespace ConfigEditor.Controllers
             if (project == null)
             {
                 return Enumerable.Empty<string>();
+            } else if (!Directory.Exists(project.Path)){
+                return null;
             }
             var files = project.Patterns
                 .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
