@@ -43,6 +43,18 @@ namespace ConfigEditor.Controllers
         }
 
         [HttpGet]
+        public string GetProjectPath(string projectName)
+        {
+            var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
+            if (project == null)
+            {
+                return null;
+            }
+            var path = project.Path;
+            return path;
+        }
+
+        [HttpGet]
         public IEnumerable<string> GetProjectSettings(string projectName)
         {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
