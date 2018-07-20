@@ -74,9 +74,17 @@ namespace ConfigEditor.Controllers
 
         private IEnumerable<Node> FindNode(DirectoryInfo root)
         {
+            var project = settings.Projects.FirstOrDefault(x => root.FullName.Contains(x.Path));
+            
+            if(project == null)
+            {
+                yield break;
+            }
             foreach (var file in root.GetFiles())
             {
-                if (file.Name.ToLower().EndsWith(".json"))
+                foreach (var Exten in project.Patterns)
+                {
+                if (Exten.Replace("*", "").Contains(Path.GetExtension(file.Name)))
                 {
                     yield return new Node
                     {
@@ -88,11 +96,13 @@ namespace ConfigEditor.Controllers
                         PathFile = file.FullName
                     };
                 }
+                }
             }
-
+            
             foreach (var item in root.GetDirectories())
             {
-
+                if (Directory.GetFiles(item.FullName).Length != 0)
+                {
                 yield return new Node
                 {
                     IsRoot = false,
@@ -101,10 +111,10 @@ namespace ConfigEditor.Controllers
                     Parent = root.FullName.GetHashCode(),
                     PathFile = root.FullName
                 };
-
                 foreach (var file in FindNode(item))
                 {
                     yield return file;
+                }
                 }
             }
         }
