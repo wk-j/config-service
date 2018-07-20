@@ -95,8 +95,8 @@ namespace ConfigEditor.Controllers
             }
             foreach (var item in root.GetDirectories())
             {
-                var totalFiles = project.Patterns.Select(pattern => Directory.GetFiles(item.FullName, pattern, SearchOption.AllDirectories)).SelectMany(x => x);
-                if (totalFiles.Count() != 0)
+                var hasMatchFiles = project.Patterns.Any(pattern => Directory.GetFiles(item.FullName, pattern, SearchOption.AllDirectories).Count() > 0);
+                if (hasMatchFiles)
                 {
                     yield return new Node
                     {
