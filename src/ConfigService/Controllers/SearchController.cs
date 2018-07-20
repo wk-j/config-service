@@ -11,8 +11,6 @@ using System.Threading.Tasks;
 
 namespace ConfigEditor.Controllers {
 
-
-
     [Route("api/[controller]/[action]")]
     public class SearchController : ControllerBase {
         private readonly AppSettings settings;
@@ -30,8 +28,6 @@ namespace ConfigEditor.Controllers {
 
             allowPaths = settings.Projects.Select(x => x.Path).ToList();
         }
-
-
 
         [HttpGet]
         public IEnumerable<string> GetProjectNames() {
@@ -69,10 +65,8 @@ namespace ConfigEditor.Controllers {
             if (project == null) yield break;
 
             var files = project.Patterns.Select(pattern => Directory.GetFiles(root.FullName, pattern, SearchOption.TopDirectoryOnly)).SelectMany(x => x);
-            foreach (var file in files)
-            {
+            foreach (var file in files) {
                 var fileInfo = new FileInfo(file);
-                // if (Exten.Replace("*", "").Contains(Path.GetExtension(file.Name)) && project.Patterns.Contains("*"))
                 yield return new Node {
                     IsRoot = false,
                     Id = fileInfo.FullName.GetHashCode(),
@@ -82,13 +76,10 @@ namespace ConfigEditor.Controllers {
                     PathFile = fileInfo.FullName
                 };
             }
-            foreach (var item in root.GetDirectories())
-            {
+            foreach (var item in root.GetDirectories()) {
                 var hasMatchFiles = project.Patterns.Any(pattern => Directory.GetFiles(item.FullName, pattern, SearchOption.AllDirectories).Count() > 0);
-                if (hasMatchFiles)
-                {
-                    yield return new Node
-                    {
+                if (hasMatchFiles) {
+                    yield return new Node {
                         IsRoot = false,
                         Id = item.FullName.GetHashCode(),
                         Name = item.Name,
@@ -102,10 +93,8 @@ namespace ConfigEditor.Controllers {
             }
         }
 
-
         [HttpGet]
         public IEnumerable<Node> GetNodes(string path) {
-            //var mainPath = Path.GetDirectoryName(path);
             var project = settings.Projects.FirstOrDefault(x => x.Path == path);
             if (project == null) {
                 return Enumerable.Empty<Node>();
