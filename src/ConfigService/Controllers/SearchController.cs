@@ -66,14 +66,12 @@ namespace ConfigEditor.Controllers {
 
         private IEnumerable<Node> FindNode(DirectoryInfo root) {
             var project = settings.Projects.FirstOrDefault(x => root.FullName.Contains(x.Path));
+            if (project == null) yield break;
 
-            if (project == null) {
-                yield break;
-            }
-            var paths = project.Patterns.Select(pattern => Directory.GetFiles(root.FullName, pattern, SearchOption.TopDirectoryOnly)).SelectMany(x => x);
-
-            foreach (var path in paths) {
-                var fileInfo = new FileInfo(path);
+            var files = project.Patterns.Select(pattern => Directory.GetFiles(root.FullName, pattern, SearchOption.TopDirectoryOnly)).SelectMany(x => x);
+            foreach (var file in files)
+            {
+                var fileInfo = new FileInfo(file);
                 // if (Exten.Replace("*", "").Contains(Path.GetExtension(file.Name)) && project.Patterns.Contains("*"))
                 yield return new Node {
                     IsRoot = false,
@@ -84,9 +82,13 @@ namespace ConfigEditor.Controllers {
                     PathFile = fileInfo.FullName
                 };
             }
-            foreach (var item in root.GetDirectories()) {
-                if (Directory.GetFiles(item.FullName).Length != 0) {
-                    yield return new Node {
+            foreach (var item in root.GetDirectories())
+            {
+                var hasMatchFiles = project.Patterns.Any(pattern => Directory.GetFiles(item.FullName, pattern, SearchOption.AllDirectories).Count() > 0);
+                if (hasMatchFiles)
+                {
+                    yield return new Node
+                    {
                         IsRoot = false,
                         Id = item.FullName.GetHashCode(),
                         Name = item.Name,
@@ -99,6 +101,7 @@ namespace ConfigEditor.Controllers {
                 }
             }
         }
+
 
         [HttpGet]
         public IEnumerable<Node> GetNodes(string path) {
