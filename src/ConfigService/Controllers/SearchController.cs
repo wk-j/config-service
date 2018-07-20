@@ -62,6 +62,11 @@ namespace ConfigEditor.Controllers
             {
                 return Enumerable.Empty<string>();
             }
+            if (!Directory.Exists(project.Path))
+            {
+                return Enumerable.Empty<string>();
+            }
+
             var files = project.Patterns
                 .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
                 .SelectMany(x => x);
@@ -70,40 +75,45 @@ namespace ConfigEditor.Controllers
 
         private IEnumerable<Node> FindNode(DirectoryInfo root)
         {
-            foreach (var file in root.GetFiles())
+            var project = settings.Projects.FirstOrDefault(x => root.FullName.Contains(x.Path));
+            if (project == null) yield break;
+
+            var files = project.Patterns.Select(pattern => Directory.GetFiles(root.FullName, pattern, SearchOption.TopDirectoryOnly)).SelectMany(x => x);
+            foreach (var file in files)
             {
-                if (file.Name.ToLower().EndsWith(".json"))
+                var fileInfo = new FileInfo(file);
+                // if (Exten.Replace("*", "").Contains(Path.GetExtension(file.Name)) && project.Patterns.Contains("*"))
+                yield return new Node
+                {
+                    IsRoot = false,
+                    Id = fileInfo.FullName.GetHashCode(),
+                    Name = fileInfo.Name,
+                    IsFile = true,
+                    Parent = root.FullName.GetHashCode(),
+                    PathFile = fileInfo.FullName
+                };
+            }
+            foreach (var item in root.GetDirectories())
+            {
+                var hasMatchFiles = project.Patterns.Any(pattern => Directory.GetFiles(item.FullName, pattern, SearchOption.AllDirectories).Count() > 0);
+                if (hasMatchFiles)
                 {
                     yield return new Node
                     {
                         IsRoot = false,
-                        Id = file.FullName.GetHashCode(),
-                        Name = file.Name,
-                        IsFile = true,
+                        Id = item.FullName.GetHashCode(),
+                        Name = item.Name,
                         Parent = root.FullName.GetHashCode(),
-                        PathFile = file.FullName
+                        PathFile = root.FullName
                     };
-                }
-            }
-
-            foreach (var item in root.GetDirectories())
-            {
-
-                yield return new Node
-                {
-                    IsRoot = false,
-                    Id = item.FullName.GetHashCode(),
-                    Name = item.Name,
-                    Parent = root.FullName.GetHashCode(),
-                    PathFile = root.FullName
-                };
-
-                foreach (var file in FindNode(item))
-                {
-                    yield return file;
+                    foreach (var file in FindNode(item))
+                    {
+                        yield return file;
+                    }
                 }
             }
         }
+
 
         [HttpGet]
         public IEnumerable<Node> GetNodes(string path)
@@ -111,6 +121,10 @@ namespace ConfigEditor.Controllers
             //var mainPath = Path.GetDirectoryName(path);
             var project = settings.Projects.FirstOrDefault(x => x.Path == path);
             if (project == null)
+            {
+                return Enumerable.Empty<Node>();
+            }
+            if (!Directory.Exists(project.Path))
             {
                 return Enumerable.Empty<Node>();
             }

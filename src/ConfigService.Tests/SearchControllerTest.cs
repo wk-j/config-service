@@ -6,11 +6,32 @@ using Microsoft.Extensions.Logging;
 using Xunit;
 using System.Linq;
 using System;
+using System.IO;
 
 public class SearchControllerTest {
 
     ILogger<SearchController> logger = new LoggerFactory().CreateLogger<SearchController>();
     AppService service = new AppService();
+
+
+    [Fact]
+    public void GetNodeTest() {
+        Console.WriteLine(new DirectoryInfo(".").FullName);
+        var settings = new AppSettings {
+            Projects = new Project[] {
+                new Project {
+                    Path = ".",
+                    Name = "ProjectA",
+                    Patterns = new []  {
+                        "appsettings.json"
+                    }
+                }
+            }
+        };
+        var controller = new SearchController(settings, logger, service);
+        var nodes = controller.GetNodes(".");
+        Assert.Equal(2, nodes.Count());
+    }
 
     [Fact]
     public void ShouldGetProjectNames() {
@@ -21,7 +42,7 @@ public class SearchControllerTest {
                     Path = "/tmp/ProjectA",
                     Name = "ProjectA",
                     Patterns = new []  {
-                        "*.json"
+                        "*.dll"
                     }
                 }
             }
@@ -32,7 +53,7 @@ public class SearchControllerTest {
         Assert.Equal(1, rs.Count());
     }
 
-    [Fact(Skip="IO")]
+    [Fact(Skip = "IO")]
     public void ShouldGetProjectSettings() {
         var settings = new AppSettings {
             Projects = new Project[] {
@@ -46,7 +67,6 @@ public class SearchControllerTest {
             }
         };
         var controller = new SearchController(settings, logger, service);
-
         var rs = controller.GetProjectSettings("ProjectA");
         Assert.True(rs.Count() > 0);
     }
