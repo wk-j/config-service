@@ -6,15 +6,18 @@ using ProjectParser;
 
 var npi = EnvironmentVariable("npi");
 var name = "ConfigService";
- 
+
 var currentDir = new DirectoryInfo(".").FullName;
 var info = Parser.Parse($"src/{name}/{name}.csproj");
-//var inter = "npm --prefix /Users/surasak/src/ConfigInterface run build-all";
+
+Task("Build-Web").Does(() => {
+    PS.StartProcess("npm --prefix '../ConfigInterface' run build");
+});
 
 Task("Pack").Does(() => {
-    CleanDirectory("./ConfigService/src/ConfigService/wwwroot");
+    CleanDirectory("src/ConfigService/wwwroot");
     CleanDirectory("publish");
-    PS.StartProcess("npm --prefix '../ConfigInterface' run build"); /// /Users/surasak/src/config-interface
+    PS.StartProcess("npm --prefix '../ConfigInterface' run build");
     DotNetCorePack($"src/{name}", new DotNetCorePackSettings {
         OutputDirectory = "publish"
     });

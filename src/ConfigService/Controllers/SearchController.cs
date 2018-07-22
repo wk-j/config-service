@@ -9,14 +9,10 @@ using System;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 
-namespace ConfigEditor.Controllers
-{
-
-
+namespace ConfigEditor.Controllers {
 
     [Route("api/[controller]/[action]")]
-    public class SearchController : ControllerBase
-    {
+    public class SearchController : ControllerBase {
         private readonly AppSettings settings;
         private readonly ILogger<SearchController> logger;
         private readonly AppService appService;
@@ -25,8 +21,7 @@ namespace ConfigEditor.Controllers
         public SearchController(
                 AppSettings settings,
                 ILogger<SearchController> logger,
-                AppService appService)
-        {
+                AppService appService) {
             this.settings = settings;
             this.logger = logger;
             this.appService = appService;
@@ -34,77 +29,81 @@ namespace ConfigEditor.Controllers
             allowPaths = settings.Projects.Select(x => x.Path).ToList();
         }
 
-
-
         [HttpGet]
-        public IEnumerable<string> GetProjectNames()
-        {
+        public IEnumerable<string> GetProjectNames() {
             return settings.Projects.Select(x => x.Name);
         }
 
         [HttpGet]
-        public IEnumerable<string> GetProjectSettings(string projectName)
-        {
+        public string GetProjectPath(string projectName) {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
-            if (project == null)
-            {
+            if (project == null) {
+                return null;
+            }
+            var path = project.Path;
+            return path;
+        }
+
+        [HttpGet]
+        public IEnumerable<string> GetProjectSettings(string projectName) {
+            var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
+            if (project == null) {
                 return Enumerable.Empty<string>();
             }
+            if (!Directory.Exists(project.Path)) {
+                return Enumerable.Empty<string>();
+            }
+
             var files = project.Patterns
                 .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
                 .SelectMany(x => x);
             return files;
         }
 
-        private IEnumerable<Node> FindNode(DirectoryInfo root)
-        {
-            foreach (var file in root.GetFiles())
-            {
-                if (file.Name.ToLower().EndsWith(".json"))
-                {
-                    yield return new Node
-                    {
-                        IsRoot = false,
-                        Id = file.FullName.GetHashCode(),
-                        Name = file.Name,
-                        IsFile = true,
-                        Parent = root.FullName.GetHashCode(),
-                        PathFile = file.FullName
-                    };
-                }
-            }
+        private IEnumerable<Node> FindNode(DirectoryInfo root) {
+            var project = settings.Projects.FirstOrDefault(x => root.FullName.Contains(x.Path));
+            if (project == null) yield break;
 
-            foreach (var item in root.GetDirectories())
-            {
-
-                yield return new Node
-                {
+            var files = project.Patterns.Select(pattern => Directory.GetFiles(root.FullName, pattern, SearchOption.TopDirectoryOnly)).SelectMany(x => x);
+            foreach (var file in files) {
+                var fileInfo = new FileInfo(file);
+                yield return new Node {
                     IsRoot = false,
-                    Id = item.FullName.GetHashCode(),
-                    Name = item.Name,
+                    Id = fileInfo.FullName.GetHashCode(),
+                    Name = fileInfo.Name,
+                    IsFile = true,
                     Parent = root.FullName.GetHashCode(),
-                    PathFile = root.FullName
+                    PathFile = fileInfo.FullName
                 };
-
-                foreach (var file in FindNode(item))
-                {
-                    yield return file;
+            }
+            foreach (var item in root.GetDirectories()) {
+                var hasMatchFiles = project.Patterns.Any(pattern => Directory.GetFiles(item.FullName, pattern, SearchOption.AllDirectories).Count() > 0);
+                if (hasMatchFiles) {
+                    yield return new Node {
+                        IsRoot = false,
+                        Id = item.FullName.GetHashCode(),
+                        Name = item.Name,
+                        Parent = root.FullName.GetHashCode(),
+                        PathFile = root.FullName
+                    };
+                    foreach (var file in FindNode(item)) {
+                        yield return file;
+                    }
                 }
             }
         }
 
         [HttpGet]
-        public IEnumerable<Node> GetNodes(string path)
-        {
-            //var mainPath = Path.GetDirectoryName(path);
+        public IEnumerable<Node> GetNodes(string path) {
             var project = settings.Projects.FirstOrDefault(x => x.Path == path);
-            if (project == null)
-            {
+            if (project == null) {
+                return Enumerable.Empty<Node>();
+            }
+            if (!Directory.Exists(project.Path)) {
                 return Enumerable.Empty<Node>();
             }
             var dir = new DirectoryInfo(path);
-            return FindNode(dir).Append(new Node
-            {
+            return FindNode(dir).Append(new Node {
                 IsRoot = true,
                 Name = dir.Name,
                 Parent = 0,
@@ -114,62 +113,45 @@ namespace ConfigEditor.Controllers
         }
 
         [HttpPost]
-        public ActionResult LoginRequest([FromBody] GetLoginRequest request)
-        {
+        public ActionResult LoginRequest([FromBody] GetLoginRequest request) {
             var user = settings.Login.FirstOrDefault(x => x.User.Equals(request.User) && x.Pass.Equals(request.Pass));
-            if (user != null)
-            {
-                return Ok(new GetLoginRequest
-                {
+            if (user != null) {
+                return Ok(new GetLoginRequest {
                     User = request.User,
                     Pass = request.Pass
                 });
-            }
-            else
-            {
+            } else {
                 return Unauthorized();
             }
         }
 
         [HttpPost]
-        public SaveContentResult SaveSettingContent([FromBody] SaveContentRequest request)
-        {
+        public SaveContentResult SaveSettingContent([FromBody] SaveContentRequest request) {
             var ok = appService.IsAllowToAccess(allowPaths, request.Path);
 
-            if (ok)
-            {
+            if (ok) {
                 System.IO.File.WriteAllText(request.Path, request.Content);
-                return new SaveContentResult
-                {
+                return new SaveContentResult {
                     Success = true
                 };
-            }
-            else
-            {
-                return new SaveContentResult
-                {
+            } else {
+                return new SaveContentResult {
                     Success = true
                 };
             }
         }
 
         [HttpGet]
-        public GetContentResult GetSettingContent(string path)
-        {
+        public GetContentResult GetSettingContent(string path) {
             var ok = appService.IsAllowToAccess(allowPaths, path);
-            if (ok)
-            {
-                return new GetContentResult
-                {
+            if (ok) {
+                return new GetContentResult {
                     Success = true,
                     Path = path,
                     Content = System.IO.File.ReadAllText(path)
                 };
-            }
-            else
-            {
-                return new GetContentResult
-                {
+            } else {
+                return new GetContentResult {
                     Success = false,
                     Path = path,
                     Content = ""
