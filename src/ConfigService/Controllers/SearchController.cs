@@ -30,34 +30,34 @@ namespace ConfigEditor.Controllers {
         }
 
         [HttpGet]
-        public IEnumerable<string> GetProjectNames() {
-            return settings.Projects.Select(x => x.Name);
+        public ActionResult GetProjectNames() {
+            return Ok(settings.Projects.Select(x => x.Name));
         }
 
         [HttpGet]
-        public string GetProjectPath(string projectName) {
+        public ActionResult GetProjectPath(string projectName) {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
             if (project == null) {
-                return null;
+                return NotFound(project);
             }
             var path = project.Path;
-            return path;
+            return Ok(path);
         }
 
         [HttpGet]
-        public IEnumerable<string> GetProjectSettings(string projectName) {
+        public ActionResult GetProjectSettings(string projectName) {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
             if (project == null) {
-                return Enumerable.Empty<string>();
+                return  NotFound(project);
             }
             if (!Directory.Exists(project.Path)) {
-                return Enumerable.Empty<string>();
+                return  BadRequest(project.Path);
             }
 
             var files = project.Patterns
                 .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
                 .SelectMany(x => x);
-            return files;
+            return Ok(files);
         }
 
         private IEnumerable<Node> FindNode(DirectoryInfo root) {
@@ -94,39 +94,39 @@ namespace ConfigEditor.Controllers {
         }
 
         [HttpGet]
-        public IEnumerable<Node> GetNodes(string path) {
+        public ActionResult<Node> GetNodes(string path) {
             var project = settings.Projects.FirstOrDefault(x => x.Path == path);
             if (project == null) {
-                return Enumerable.Empty<Node>();
+                return NotFound(project);
             }
             if (!Directory.Exists(project.Path)) {
-                return Enumerable.Empty<Node>();
+                return BadRequest(project.Path);
             }
             var dir = new DirectoryInfo(path);
-            return FindNode(dir).Append(new Node {
+            return Ok(FindNode(dir).Append(new Node {
                 IsRoot = true,
                 Name = dir.Name,
                 Parent = 0,
                 Id = dir.FullName.GetHashCode(),
                 PathFile = dir.FullName.ToString()
-            });
+            }));
         }
 
         [HttpPost]
-        public ActionResult LoginRequest([FromBody] GetLoginRequest request) {
+        public ActionResult<GetLoginRequest> LoginRequest([FromBody] GetLoginRequest request) {
             var user = settings.Login.FirstOrDefault(x => x.User.Equals(request.User) && x.Pass.Equals(request.Pass));
             if (user != null) {
-                return Ok(new GetLoginRequest {
+                return new GetLoginRequest {
                     User = request.User,
                     Pass = request.Pass
-                });
+                };
             } else {
                 return Unauthorized();
             }
         }
 
         [HttpPost]
-        public SaveContentResult SaveSettingContent([FromBody] SaveContentRequest request) {
+        public ActionResult<SaveContentResult> SaveSettingContent([FromBody] SaveContentRequest request) {
             var ok = appService.IsAllowToAccess(allowPaths, request.Path);
 
             if (ok) {
@@ -142,7 +142,7 @@ namespace ConfigEditor.Controllers {
         }
 
         [HttpGet]
-        public GetContentResult GetSettingContent(string path) {
+        public ActionResult<GetContentResult> GetSettingContent(string path) {
             var ok = appService.IsAllowToAccess(allowPaths, path);
             if (ok) {
                 return new GetContentResult {
