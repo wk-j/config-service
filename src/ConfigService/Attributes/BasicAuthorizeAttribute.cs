@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Text;
+using ConfigEditor.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -11,6 +13,12 @@ namespace ConfigEditor.Attributes {
     }
 
     public class BasicAuthorizeFilter : IAuthorizationFilter {
+        private readonly AppSettings settings;
+        public BasicAuthorizeFilter(AppSettings settings)
+        {
+            this.settings = settings;
+        }
+
         public void OnAuthorization(AuthorizationFilterContext context) {
             string au = context.HttpContext.Request.Headers["Authorization"];
             if (au != null && au.StartsWith("Basic ")) {
@@ -22,7 +30,7 @@ namespace ConfigEditor.Attributes {
                     if (IsAuthorized(username, password)) {
                         return;
                     }
-                } catch (Exception _) {
+                } catch (Exception) {
                     context.HttpContext.Response.Headers["WWW-Authenticate"] = "Basic";
                     context.Result = new UnauthorizedResult();
                 }
@@ -32,9 +40,9 @@ namespace ConfigEditor.Attributes {
             context.Result = new UnauthorizedResult();
         }
         public bool IsAuthorized(string username, string password) {
+             var hasUser = settings.Login.Any(x => x.User.Equals(username) && x.Pass.Equals(password));
             // Check that username and password are correct
-            return username.Equals("admin", StringComparison.InvariantCultureIgnoreCase)
-                   && password.Equals("admin");
+            return hasUser;
         }
     }
 }
