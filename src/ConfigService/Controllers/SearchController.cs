@@ -6,8 +6,11 @@ using System.Linq;
 using System.IO;
 using ConfigEditor.Utility;
 using System;
+using System.Text;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using ConfigEditor.Attributes;
+
 
 namespace ConfigEditor.Controllers {
 
@@ -29,11 +32,13 @@ namespace ConfigEditor.Controllers {
             allowPaths = settings.Projects.Select(x => x.Path).ToList();
         }
 
+        [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
         public IEnumerable<string> GetProjectNames() {
             return settings.Projects.Select(x => x.Name);
         }
 
+        [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
         public string GetProjectPath(string projectName) {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
@@ -44,6 +49,7 @@ namespace ConfigEditor.Controllers {
             return path;
         }
 
+        [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
         public IEnumerable<string> GetProjectSettings(string projectName) {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
@@ -60,6 +66,8 @@ namespace ConfigEditor.Controllers {
             return files;
         }
 
+
+             
         private IEnumerable<Node> FindNode(DirectoryInfo root) {
             var project = settings.Projects.FirstOrDefault(x => root.FullName.Contains(x.Path));
             if (project == null) yield break;
@@ -93,6 +101,7 @@ namespace ConfigEditor.Controllers {
             }
         }
 
+        [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
         public IEnumerable<Node> GetNodes(string path) {
             var project = settings.Projects.FirstOrDefault(x => x.Path == path);
@@ -116,15 +125,23 @@ namespace ConfigEditor.Controllers {
         public ActionResult LoginRequest([FromBody] GetLoginRequest request) {
             var user = settings.Login.FirstOrDefault(x => x.User.Equals(request.User) && x.Pass.Equals(request.Pass));
             if (user != null) {
-                return Ok(new GetLoginRequest {
+                //  base64 UTF8 (request.User:request.pass)
+                var account = $"{request.User}:{request.Pass}";
+                var accountBytes = Encoding.UTF8.GetBytes(account);
+
+                var result = new { access_token = Convert.ToBase64String(accountBytes) };
+                return Ok(result);
+
+                /*return Ok(new GetLoginRequest {
                     User = request.User,
                     Pass = request.Pass
-                });
+                });*/
             } else {
                 return Unauthorized();
             }
         }
 
+        [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpPost]
         public SaveContentResult SaveSettingContent([FromBody] SaveContentRequest request) {
             var ok = appService.IsAllowToAccess(allowPaths, request.Path);
@@ -141,6 +158,7 @@ namespace ConfigEditor.Controllers {
             }
         }
 
+        [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
         public GetContentResult GetSettingContent(string path) {
             var ok = appService.IsAllowToAccess(allowPaths, path);
