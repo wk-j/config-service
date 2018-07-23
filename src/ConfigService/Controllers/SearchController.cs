@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 namespace ConfigEditor.Controllers {
 
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class SearchController : ControllerBase {
         private readonly AppSettings settings;
         private readonly ILogger<SearchController> logger;
@@ -30,22 +31,22 @@ namespace ConfigEditor.Controllers {
         }
 
         [HttpGet]
-        public ActionResult GetProjectNames() {
+        public ActionResult<List<string>> GetProjectNames() {
             return Ok(settings.Projects.Select(x => x.Name));
         }
 
         [HttpGet]
-        public ActionResult GetProjectPath(string projectName) {
+        public ActionResult<List<string>> GetProjectPath(string projectName) {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
             if (project == null) {
                 return NotFound(project);
             }
             var path = project.Path;
-            return Ok(path);
+            return Ok(new { path });
         }
 
         [HttpGet]
-        public ActionResult GetProjectSettings(string projectName) {
+        public ActionResult<List<string>> GetProjectSettings(string projectName) {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
             if (project == null) {
                 return  NotFound(project);
@@ -57,7 +58,7 @@ namespace ConfigEditor.Controllers {
             var files = project.Patterns
                 .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
                 .SelectMany(x => x);
-            return Ok(files);
+            return Ok(new { files });
         }
 
         private IEnumerable<Node> FindNode(DirectoryInfo root) {
@@ -67,13 +68,15 @@ namespace ConfigEditor.Controllers {
             var files = project.Patterns.Select(pattern => Directory.GetFiles(root.FullName, pattern, SearchOption.TopDirectoryOnly)).SelectMany(x => x);
             foreach (var file in files) {
                 var fileInfo = new FileInfo(file);
+                var date = fileInfo.LastWriteTimeUtc.AddHours(+7);
                 yield return new Node {
                     IsRoot = false,
                     Id = fileInfo.FullName.GetHashCode(),
                     Name = fileInfo.Name,
                     IsFile = true,
                     Parent = root.FullName.GetHashCode(),
-                    PathFile = fileInfo.FullName
+                    PathFile = fileInfo.FullName,
+                    ModifieDate = date.ToString("dd/MM/yyyy hh:mm tt")
                 };
             }
             foreach (var item in root.GetDirectories()) {
@@ -84,7 +87,8 @@ namespace ConfigEditor.Controllers {
                         Id = item.FullName.GetHashCode(),
                         Name = item.Name,
                         Parent = root.FullName.GetHashCode(),
-                        PathFile = root.FullName
+                        PathFile = root.FullName,
+                        ModifieDate = ""
                     };
                     foreach (var file in FindNode(item)) {
                         yield return file;
@@ -108,7 +112,8 @@ namespace ConfigEditor.Controllers {
                 Name = dir.Name,
                 Parent = 0,
                 Id = dir.FullName.GetHashCode(),
-                PathFile = dir.FullName.ToString()
+                PathFile = dir.FullName.ToString(),
+                ModifieDate = ""
             }));
         }
 
