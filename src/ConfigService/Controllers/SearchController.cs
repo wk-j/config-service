@@ -15,6 +15,7 @@ using ConfigEditor.Attributes;
 namespace ConfigEditor.Controllers {
 
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class SearchController : ControllerBase {
         private readonly AppSettings settings;
         private readonly ILogger<SearchController> logger;
@@ -34,36 +35,36 @@ namespace ConfigEditor.Controllers {
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
-        public IEnumerable<string> GetProjectNames() {
-            return settings.Projects.Select(x => x.Name);
+        public ActionResult<List<string>> GetProjectNames() {
+            return Ok(settings.Projects.Select(x => x.Name));
         }
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
-        public string GetProjectPath(string projectName) {
+        public ActionResult<List<string>> GetProjectPath(string projectName) {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
             if (project == null) {
-                return null;
+                return NotFound(project);
             }
             var path = project.Path;
-            return path;
+            return Ok(new { path });
         }
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
-        public IEnumerable<string> GetProjectSettings(string projectName) {
+        public ActionResult<List<string>> GetProjectSettings(string projectName) {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
             if (project == null) {
-                return Enumerable.Empty<string>();
+                return  NotFound(project);
             }
             if (!Directory.Exists(project.Path)) {
-                return Enumerable.Empty<string>();
+                return  BadRequest(project.Path);
             }
 
             var files = project.Patterns
                 .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
                 .SelectMany(x => x);
-            return files;
+            return Ok(new { files });
         }
 
 
@@ -75,13 +76,15 @@ namespace ConfigEditor.Controllers {
             var files = project.Patterns.Select(pattern => Directory.GetFiles(root.FullName, pattern, SearchOption.TopDirectoryOnly)).SelectMany(x => x);
             foreach (var file in files) {
                 var fileInfo = new FileInfo(file);
+                var date = fileInfo.LastWriteTimeUtc.AddHours(+7);
                 yield return new Node {
                     IsRoot = false,
                     Id = fileInfo.FullName.GetHashCode(),
                     Name = fileInfo.Name,
                     IsFile = true,
                     Parent = root.FullName.GetHashCode(),
-                    PathFile = fileInfo.FullName
+                    PathFile = fileInfo.FullName,
+                    ModifieDate = date.ToString("dd/MM/yyyy hh:mm tt")
                 };
             }
             foreach (var item in root.GetDirectories()) {
@@ -92,7 +95,8 @@ namespace ConfigEditor.Controllers {
                         Id = item.FullName.GetHashCode(),
                         Name = item.Name,
                         Parent = root.FullName.GetHashCode(),
-                        PathFile = root.FullName
+                        PathFile = root.FullName,
+                        ModifieDate = ""
                     };
                     foreach (var file in FindNode(item)) {
                         yield return file;
@@ -103,28 +107,30 @@ namespace ConfigEditor.Controllers {
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
-        public IEnumerable<Node> GetNodes(string path) {
+        public ActionResult<Node> GetNodes(string path) {
             var project = settings.Projects.FirstOrDefault(x => x.Path == path);
             if (project == null) {
-                return Enumerable.Empty<Node>();
+                return NotFound(project);
             }
             if (!Directory.Exists(project.Path)) {
-                return Enumerable.Empty<Node>();
+                return BadRequest(project.Path);
             }
             var dir = new DirectoryInfo(path);
-            return FindNode(dir).Append(new Node {
+            return Ok(FindNode(dir).Append(new Node {
                 IsRoot = true,
                 Name = dir.Name,
                 Parent = 0,
                 Id = dir.FullName.GetHashCode(),
-                PathFile = dir.FullName.ToString()
-            });
+                PathFile = dir.FullName.ToString(),
+                ModifieDate = ""
+            }));
         }
 
         [HttpPost]
-        public ActionResult LoginRequest([FromBody] GetLoginRequest request) {
+        public ActionResult<GetLoginRequest> LoginRequest([FromBody] GetLoginRequest request) {
             var user = settings.Login.FirstOrDefault(x => x.User.Equals(request.User) && x.Pass.Equals(request.Pass));
             if (user != null) {
+
                 //  base64 UTF8 (request.User:request.pass)
                 var account = $"{request.User}:{request.Pass}";
                 var accountBytes = Encoding.UTF8.GetBytes(account);
@@ -136,6 +142,7 @@ namespace ConfigEditor.Controllers {
                     User = request.User,
                     Pass = request.Pass
                 });*/
+
             } else {
                 return Unauthorized();
             }
@@ -143,7 +150,7 @@ namespace ConfigEditor.Controllers {
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpPost]
-        public SaveContentResult SaveSettingContent([FromBody] SaveContentRequest request) {
+        public ActionResult<SaveContentResult> SaveSettingContent([FromBody] SaveContentRequest request) {
             var ok = appService.IsAllowToAccess(allowPaths, request.Path);
 
             if (ok) {
@@ -160,7 +167,7 @@ namespace ConfigEditor.Controllers {
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
-        public GetContentResult GetSettingContent(string path) {
+        public ActionResult<GetContentResult> GetSettingContent(string path) {
             var ok = appService.IsAllowToAccess(allowPaths, path);
             if (ok) {
                 return new GetContentResult {
