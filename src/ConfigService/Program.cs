@@ -17,7 +17,10 @@ namespace ConfigEditor {
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
           WebHost.CreateDefaultBuilder(args)
-              .UseStartup<Startup>();
+                .UseKestrel(options => {
+                    options.ListenAnyIP(5000);
+                })
+                .UseStartup<Startup>();
 
         public static async Task Main(string[] args) {
             var logger = Log.Logger = new LoggerConfiguration()
@@ -28,16 +31,21 @@ namespace ConfigEditor {
                 .CreateLogger();
 
             var settings = "appsettings.json";
-            var json = File.ReadAllText(settings);
-            var errors = await Validator.Schemacheck(json);
+            if (File.Exists(settings)) {
 
-            if (errors.Count == 0) {
-                CreateWebHostBuilder(args).Build().Run();
-            } else {
-                logger.Error("Invalid configuration (appsettings.json)");
-                foreach (var item in errors) {
-                    logger.Error("{0} {1}", item.Kind, item.Property);
+                var json = File.ReadAllText(settings);
+                var errors = await Validator.Schemacheck(json);
+
+                if (errors.Count == 0) {
+                    CreateWebHostBuilder(args).Build().Run();
+                } else {
+                    logger.Error("Invalid configuration (appsettings.json)");
+                    foreach (var item in errors) {
+                        logger.Error("{0} {1}", item.Kind, item.Property);
+                    }
                 }
+            } else {
+                CreateWebHostBuilder(args).Build().Run();
             }
         }
     }

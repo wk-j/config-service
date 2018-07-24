@@ -6,5 +6,6 @@ namespace ConfigEditor.Controllers {
         public string Name { set; get; }
         public int Parent { set; get; }
         public string PathFile { set; get; }
+        public string ModifieDate { set; get; }
     }
 }

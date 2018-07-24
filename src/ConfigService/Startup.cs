@@ -33,15 +33,24 @@ namespace ConfigEditor {
 
         public void ConfigureServices(IServiceCollection services) {
             var config = Configuration.Get<AppSettings>();
-            config.Projects = config.Projects.Select(x => new Project {
-                Path = x.Path,
-                Patterns = x.Patterns,
-                Name = new DirectoryInfo(x.Path).Name
-            }).ToArray();
-            config.Login = config.Login.Select(x => new Login {
-                User = x.User,
-                Pass = x.Pass
-            }).ToArray();
+
+            if (config.Login.Length == 0) {
+                config.Login = new Login[]{
+                    new Login(){
+                    User = "admin",
+                    Pass = "admin"}
+                };
+            }
+
+            if (config.Projects.Length == 0) {
+                string path = System.Environment.CurrentDirectory;
+                config.Projects = new Project[]{
+                new Project(){
+                Path = path,
+                Patterns = new string[] { "*.config", "*.json", "*.properties" },
+                Name = new DirectoryInfo(path).Name}
+                };
+            }
 
             services.AddSwaggerGen(c => {
                 c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
