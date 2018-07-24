@@ -37,9 +37,8 @@ namespace ConfigEditor
         public void ConfigureServices(IServiceCollection services)
         {
             var config = Configuration.Get<AppSettings>();
-            string path = System.Environment.CurrentDirectory;
-            string[] Pattern = new string[] { "*.config", "*.json", "*.properties" };
-            if (config.Login.Length == 0 || config.Projects.Length == 0)
+           
+            if (config.Login.Length == 0)
             {
                 config.Login = new Login[]{
                     new Login(){
@@ -47,13 +46,14 @@ namespace ConfigEditor
                     Pass = "admin"}
                 };
             }
-    
+
             if (config.Projects.Length == 0)
             {
+                string path = System.Environment.CurrentDirectory;
                 config.Projects = new Project[]{
                 new Project(){
                 Path = path,
-                Patterns = Pattern,
+                Patterns = new string[] { "*.config", "*.json", "*.properties" },
                 Name = new DirectoryInfo(path).Name}
                 };
             }
