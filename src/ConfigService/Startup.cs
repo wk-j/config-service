@@ -46,24 +46,17 @@ namespace ConfigEditor
                     User = "admin",
                     Pass = "admin"}
                 };
+            }
+    
+            if (config.Projects.Length == 0)
+            {
                 config.Projects = new Project[]{
                 new Project(){
                 Path = path,
                 Patterns = Pattern,
                 Name = new DirectoryInfo(path).Name}
                 };
-            } else {
-                config.Projects = config.Projects.Select(x => new Project {
-                Path = x.Path,
-                Patterns = x.Patterns,
-                Name = new DirectoryInfo(x.Path).Name
-            }).ToArray();
-            config.Login = config.Login.Select(x => new Login {
-                User = x.User,
-                Pass = x.Pass
-            }).ToArray();
             }
-            
 
             services.AddSwaggerGen(c =>
             {
