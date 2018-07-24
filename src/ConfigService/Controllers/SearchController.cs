@@ -161,7 +161,7 @@ namespace ConfigEditor.Controllers
                 var account = $"{request.User}:{request.Pass}";
                 var accountBytes = Encoding.UTF8.GetBytes(account);
 
-                var result = new { access_token = Convert.ToBase64String(accountBytes) };
+                var result = new { AccessToken = Convert.ToBase64String(accountBytes) };
                 return Ok(result);
             }
             else

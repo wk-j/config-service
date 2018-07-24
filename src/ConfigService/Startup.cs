@@ -19,11 +19,14 @@ using Serilog;
 using Swashbuckle;
 using Swashbuckle.AspNetCore.Swagger;
 
-namespace ConfigEditor {
-    public class Startup {
+namespace ConfigEditor
+{
+    public class Startup
+    {
         private ILogger<Startup> Logger { get; }
 
-        public Startup(IConfiguration configuration, ILogger<Startup> logger) {
+        public Startup(IConfiguration configuration, ILogger<Startup> logger)
+        {
             Configuration = configuration;
             Logger = logger;
 
@@ -31,9 +34,26 @@ namespace ConfigEditor {
         }
         public IConfiguration Configuration { get; }
 
-        public void ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services)
+        {
             var config = Configuration.Get<AppSettings>();
-            config.Projects = config.Projects.Select(x => new Project {
+            string path = System.Environment.CurrentDirectory;
+            string[] Pattern = new string[] { "*.config", "*.json", "*.properties" };
+            if (config.Login.Length == 0 || config.Projects.Length == 0)
+            {
+                config.Login = new Login[]{
+                    new Login(){
+                    User = "admin",
+                    Pass = "admin"}
+                };
+                config.Projects = new Project[]{
+                new Project(){
+                Path = path,
+                Patterns = Pattern,
+                Name = new DirectoryInfo(path).Name}
+                };
+            } else {
+                config.Projects = config.Projects.Select(x => new Project {
                 Path = x.Path,
                 Patterns = x.Patterns,
                 Name = new DirectoryInfo(x.Path).Name
@@ -42,8 +62,11 @@ namespace ConfigEditor {
                 User = x.User,
                 Pass = x.Pass
             }).ToArray();
+            }
+            
 
-            services.AddSwaggerGen(c => {
+            services.AddSwaggerGen(c =>
+            {
                 c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
             });
 
@@ -54,9 +77,11 @@ namespace ConfigEditor {
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env) {
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
 
-            if (env.IsProduction()) {
+            if (env.IsProduction())
+            {
                 var asm = Assembly.GetEntryAssembly();
                 var asmName = asm.GetName().Name;
                 var defaultOptions = new DefaultFilesOptions();
@@ -65,28 +90,36 @@ namespace ConfigEditor {
                 defaultOptions.FileProvider = new EmbeddedFileProvider(asm, $"{asmName}.wwwroot");
 
                 app.UseDefaultFiles(defaultOptions);
-                app.UseStaticFiles(new StaticFileOptions {
+                app.UseStaticFiles(new StaticFileOptions
+                {
                     FileProvider = new EmbeddedFileProvider(asm, $"{asmName}.wwwroot")
                 });
-            } else {
+            }
+            else
+            {
                 app.UseDefaultFiles();
                 app.UseStaticFiles();
             }
 
-            if (env.IsDevelopment()) {
+            if (env.IsDevelopment())
+            {
                 app.UseDeveloperExceptionPage();
-            } else {
+            }
+            else
+            {
                 app.UseHsts();
             }
 
-            app.UseCors(builder => {
+            app.UseCors(builder =>
+            {
                 builder.AllowAnyHeader();
                 builder.AllowAnyMethod();
                 builder.AllowAnyOrigin();
             });
 
             app.UseSwagger();
-            app.UseSwaggerUI(c => {
+            app.UseSwaggerUI(c =>
+            {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
 
