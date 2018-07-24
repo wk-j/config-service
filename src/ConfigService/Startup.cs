@@ -19,14 +19,11 @@ using Serilog;
 using Swashbuckle;
 using Swashbuckle.AspNetCore.Swagger;
 
-namespace ConfigEditor
-{
-    public class Startup
-    {
+namespace ConfigEditor {
+    public class Startup {
         private ILogger<Startup> Logger { get; }
 
-        public Startup(IConfiguration configuration, ILogger<Startup> logger)
-        {
+        public Startup(IConfiguration configuration, ILogger<Startup> logger) {
             Configuration = configuration;
             Logger = logger;
 
@@ -34,12 +31,10 @@ namespace ConfigEditor
         }
         public IConfiguration Configuration { get; }
 
-        public void ConfigureServices(IServiceCollection services)
-        {
+        public void ConfigureServices(IServiceCollection services) {
             var config = Configuration.Get<AppSettings>();
-           
-            if (config.Login.Length == 0)
-            {
+
+            if (config.Login.Length == 0) {
                 config.Login = new Login[]{
                     new Login(){
                     User = "admin",
@@ -47,8 +42,7 @@ namespace ConfigEditor
                 };
             }
 
-            if (config.Projects.Length == 0)
-            {
+            if (config.Projects.Length == 0) {
                 string path = System.Environment.CurrentDirectory;
                 config.Projects = new Project[]{
                 new Project(){
@@ -58,8 +52,7 @@ namespace ConfigEditor
                 };
             }
 
-            services.AddSwaggerGen(c =>
-            {
+            services.AddSwaggerGen(c => {
                 c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
             });
 
@@ -70,11 +63,9 @@ namespace ConfigEditor
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env) {
 
-            if (env.IsProduction())
-            {
+            if (env.IsProduction()) {
                 var asm = Assembly.GetEntryAssembly();
                 var asmName = asm.GetName().Name;
                 var defaultOptions = new DefaultFilesOptions();
@@ -83,36 +74,28 @@ namespace ConfigEditor
                 defaultOptions.FileProvider = new EmbeddedFileProvider(asm, $"{asmName}.wwwroot");
 
                 app.UseDefaultFiles(defaultOptions);
-                app.UseStaticFiles(new StaticFileOptions
-                {
+                app.UseStaticFiles(new StaticFileOptions {
                     FileProvider = new EmbeddedFileProvider(asm, $"{asmName}.wwwroot")
                 });
-            }
-            else
-            {
+            } else {
                 app.UseDefaultFiles();
                 app.UseStaticFiles();
             }
 
-            if (env.IsDevelopment())
-            {
+            if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
-            }
-            else
-            {
+            } else {
                 app.UseHsts();
             }
 
-            app.UseCors(builder =>
-            {
+            app.UseCors(builder => {
                 builder.AllowAnyHeader();
                 builder.AllowAnyMethod();
                 builder.AllowAnyOrigin();
             });
 
             app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
+            app.UseSwaggerUI(c => {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
 

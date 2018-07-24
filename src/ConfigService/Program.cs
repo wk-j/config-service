@@ -11,22 +11,18 @@ using Serilog.Events;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
-namespace ConfigEditor
-{
+namespace ConfigEditor {
 
-    public class Program
-    {
+    public class Program {
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
           WebHost.CreateDefaultBuilder(args)
-                .UseKestrel(options =>
-                {
+                .UseKestrel(options => {
                     options.ListenAnyIP(5000);
                 })
                 .UseStartup<Startup>();
 
-        public static async Task Main(string[] args)
-        {
+        public static async Task Main(string[] args) {
             var logger = Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -35,23 +31,20 @@ namespace ConfigEditor
                 .CreateLogger();
 
             var settings = "appsettings.json";
-            if(File.Exists(settings)){
+            if (File.Exists(settings)) {
 
-            var json = File.ReadAllText(settings);
-            var errors = await Validator.Schemacheck(json);
+                var json = File.ReadAllText(settings);
+                var errors = await Validator.Schemacheck(json);
 
-            if (errors.Count == 0)
-            {
-                CreateWebHostBuilder(args).Build().Run();
-            }
-            else
-            {
-                logger.Error("Invalid configuration (appsettings.json)");
-                foreach (var item in errors)
-                {
-                    logger.Error("{0} {1}", item.Kind, item.Property);
+                if (errors.Count == 0) {
+                    CreateWebHostBuilder(args).Build().Run();
+                } else {
+                    logger.Error("Invalid configuration (appsettings.json)");
+                    foreach (var item in errors) {
+                        logger.Error("{0} {1}", item.Kind, item.Property);
+                    }
                 }
-            }}else{
+            } else {
                 CreateWebHostBuilder(args).Build().Run();
             }
         }
