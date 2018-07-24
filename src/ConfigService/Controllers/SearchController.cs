@@ -77,7 +77,7 @@ namespace ConfigEditor.Controllers
                 .SelectMany(x => x);
             return new GetFile
             {
-                files = file
+                Files = file
             };
         }
 
