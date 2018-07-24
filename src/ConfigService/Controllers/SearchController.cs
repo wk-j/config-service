@@ -12,11 +12,13 @@ using System.Threading.Tasks;
 using ConfigEditor.Attributes;
 
 
-namespace ConfigEditor.Controllers {
+namespace ConfigEditor.Controllers
+{
 
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class SearchController : ControllerBase {
+    public class SearchController : ControllerBase
+    {
         private readonly AppSettings settings;
         private readonly ILogger<SearchController> logger;
         private readonly AppService appService;
@@ -25,7 +27,8 @@ namespace ConfigEditor.Controllers {
         public SearchController(
                 AppSettings settings,
                 ILogger<SearchController> logger,
-                AppService appService) {
+                AppService appService)
+        {
             this.settings = settings;
             this.logger = logger;
             this.appService = appService;
@@ -35,49 +38,63 @@ namespace ConfigEditor.Controllers {
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
-        public ActionResult<List<string>> GetProjectNames() {
+        public ActionResult<List<string>> GetProjectNames()
+        {
             return Ok(settings.Projects.Select(x => x.Name));
         }
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
-        public ActionResult<List<string>> GetProjectPath(string projectName) {
+        public ActionResult<GetPath> GetProjectPath(string projectName)
+        {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
-            if (project == null) {
+            if (project == null)
+            {
                 return NotFound(project);
             }
-            var path = project.Path;
-            return Ok(new { path });
+            var paths = project.Path;
+            return new GetPath{
+                Path = paths
+            };
         }
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
-        public ActionResult<List<string>> GetProjectSettings(string projectName) {
+        public ActionResult<GetFile> GetProjectSettings(string projectName)
+        {
             var project = settings.Projects.FirstOrDefault(x => x.Name == projectName);
-            if (project == null) {
-                return  NotFound(project);
+            if (project == null)
+            {
+                return NotFound(project);
             }
-            if (!Directory.Exists(project.Path)) {
-                return  BadRequest(project.Path);
+            if (!Directory.Exists(project.Path))
+            {
+                return BadRequest(project.Path);
             }
 
-            var files = project.Patterns
+            var file = project.Patterns
                 .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
                 .SelectMany(x => x);
-            return Ok(new { files });
+            return new GetFile
+            {
+                files = file
+            };
         }
 
 
-             
-        private IEnumerable<Node> FindNode(DirectoryInfo root) {
+
+        private IEnumerable<Node> FindNode(DirectoryInfo root)
+        {
             var project = settings.Projects.FirstOrDefault(x => root.FullName.Contains(x.Path));
             if (project == null) yield break;
 
             var files = project.Patterns.Select(pattern => Directory.GetFiles(root.FullName, pattern, SearchOption.TopDirectoryOnly)).SelectMany(x => x);
-            foreach (var file in files) {
+            foreach (var file in files)
+            {
                 var fileInfo = new FileInfo(file);
                 var date = fileInfo.LastWriteTimeUtc.AddHours(+7);
-                yield return new Node {
+                yield return new Node
+                {
                     IsRoot = false,
                     Id = fileInfo.FullName.GetHashCode(),
                     Name = fileInfo.Name,
@@ -87,10 +104,13 @@ namespace ConfigEditor.Controllers {
                     ModifieDate = date.ToString("dd/MM/yyyy hh:mm tt")
                 };
             }
-            foreach (var item in root.GetDirectories()) {
+            foreach (var item in root.GetDirectories())
+            {
                 var hasMatchFiles = project.Patterns.Any(pattern => Directory.GetFiles(item.FullName, pattern, SearchOption.AllDirectories).Count() > 0);
-                if (hasMatchFiles) {
-                    yield return new Node {
+                if (hasMatchFiles)
+                {
+                    yield return new Node
+                    {
                         IsRoot = false,
                         Id = item.FullName.GetHashCode(),
                         Name = item.Name,
@@ -98,7 +118,8 @@ namespace ConfigEditor.Controllers {
                         PathFile = root.FullName,
                         ModifieDate = ""
                     };
-                    foreach (var file in FindNode(item)) {
+                    foreach (var file in FindNode(item))
+                    {
                         yield return file;
                     }
                 }
@@ -107,59 +128,66 @@ namespace ConfigEditor.Controllers {
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
-        public ActionResult<Node> GetNodes(string path) {
+        public ActionResult<List<Node>> GetNodes(string path)
+        {
             var project = settings.Projects.FirstOrDefault(x => x.Path == path);
-            if (project == null) {
+            if (project == null)
+            {
                 return NotFound(project);
             }
-            if (!Directory.Exists(project.Path)) {
+            if (!Directory.Exists(project.Path))
+            {
                 return BadRequest(project.Path);
             }
             var dir = new DirectoryInfo(path);
-            return Ok(FindNode(dir).Append(new Node {
+            return FindNode(dir).Append(new Node
+            {
                 IsRoot = true,
                 Name = dir.Name,
                 Parent = 0,
                 Id = dir.FullName.GetHashCode(),
                 PathFile = dir.FullName.ToString(),
                 ModifieDate = ""
-            }));
+            }).ToList();
         }
 
         [HttpPost]
-        public ActionResult<GetLoginRequest> LoginRequest([FromBody] GetLoginRequest request) {
+        public ActionResult LoginRequest([FromBody] GetLoginRequest request)
+        {
             var user = settings.Login.FirstOrDefault(x => x.User.Equals(request.User) && x.Pass.Equals(request.Pass));
-            if (user != null) {
-
+            if (user != null)
+            {
                 //  base64 UTF8 (request.User:request.pass)
                 var account = $"{request.User}:{request.Pass}";
                 var accountBytes = Encoding.UTF8.GetBytes(account);
 
                 var result = new { access_token = Convert.ToBase64String(accountBytes) };
                 return Ok(result);
-
-                /*return Ok(new GetLoginRequest {
-                    User = request.User,
-                    Pass = request.Pass
-                });*/
-
-            } else {
+            }
+            else
+            {
                 return Unauthorized();
             }
         }
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpPost]
-        public ActionResult<SaveContentResult> SaveSettingContent([FromBody] SaveContentRequest request) {
+        public ActionResult<SaveContentResult> SaveSettingContent([FromBody] SaveContentRequest request)
+        {
             var ok = appService.IsAllowToAccess(allowPaths, request.Path);
 
-            if (ok) {
+            if (ok)
+            {
                 System.IO.File.WriteAllText(request.Path, request.Content);
-                return new SaveContentResult {
+                return new SaveContentResult
+                {
                     Success = true
                 };
-            } else {
-                return new SaveContentResult {
+            }
+            else
+            {
+                return new SaveContentResult
+                {
                     Success = true
                 };
             }
@@ -167,16 +195,22 @@ namespace ConfigEditor.Controllers {
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpGet]
-        public ActionResult<GetContentResult> GetSettingContent(string path) {
+        public ActionResult<GetContentResult> GetSettingContent(string path)
+        {
             var ok = appService.IsAllowToAccess(allowPaths, path);
-            if (ok) {
-                return new GetContentResult {
+            if (ok)
+            {
+                return new GetContentResult
+                {
                     Success = true,
                     Path = path,
                     Content = System.IO.File.ReadAllText(path)
                 };
-            } else {
-                return new GetContentResult {
+            }
+            else
+            {
+                return new GetContentResult
+                {
                     Success = false,
                     Path = path,
                     Content = ""
