@@ -1,4 +1,4 @@
-#addin "wk.StartProcess"
+#addin "wk.StartProcess&version=18.5.1"
 #addin "wk.ProjectParser"
 
 using PS = StartProcess.Processor;
@@ -11,13 +11,13 @@ var currentDir = new DirectoryInfo(".").FullName;
 var info = Parser.Parse($"src/{name}/{name}.csproj");
 
 Task("Build-Web").Does(() => {
-    PS.StartProcess("npm --prefix '../ConfigInterface' run build");
+    PS.StartProcess("npm run build", "../ConfigInterface");
 });
 
 Task("Pack").Does(() => {
     CleanDirectory("src/ConfigService/wwwroot");
     CleanDirectory("publish");
-    PS.StartProcess("npm --prefix '../ConfigInterface' run build");
+    PS.StartProcess("npm run build", "../ConfigInterface");
     DotNetCorePack($"src/{name}", new DotNetCorePackSettings {
         OutputDirectory = "publish"
     });
