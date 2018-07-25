@@ -101,7 +101,8 @@ namespace ConfigEditor.Controllers
                     IsFile = true,
                     Parent = root.FullName.GetHashCode(),
                     PathFile = fileInfo.FullName,
-                    ModifieDate = date.ToString("dd/MM/yyyy hh:mm tt")
+                    ModifieDate = date.ToString("dd/MM/yyyy hh:mm tt"),
+                    FileType = Path.GetExtension(fileInfo.FullName)
                 };
             }
             foreach (var item in root.GetDirectories())
@@ -116,7 +117,8 @@ namespace ConfigEditor.Controllers
                         Name = item.Name,
                         Parent = root.FullName.GetHashCode(),
                         PathFile = root.FullName,
-                        ModifieDate = ""
+                        ModifieDate = "",
+                        FileType = Path.GetExtension(item.FullName)
                     };
                     foreach (var file in FindNode(item))
                     {
