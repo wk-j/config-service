@@ -153,6 +153,7 @@ namespace ConfigEditor.Controllers {
             return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented);
         }
         private string ReformatXml(string content) {
+            // System.Xml.XmlException
             var bd = new StringBuilder();
             var element = XElement.Parse(content);
 
@@ -170,41 +171,39 @@ namespace ConfigEditor.Controllers {
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
         [HttpPost]
         public ActionResult<DemoContent> ShowDemoContent([FromBody] DemoContentRequest req) {
-                var pattern = Path.GetExtension(req.Path);
-                if (pattern == ".json") {
-                    /* 
-                    if(JsonConvert.DeserializeObject<dynamic>(req.Content))
-                    {*/
-                    try {
+            var pattern = Path.GetExtension(req.Path);
+            if (pattern == ".json") {
+                try {
                     var Contents = ReformatJson(req.Content);
                     return new DemoContent {
                         Content = Contents,
                         Pass = true
                     };
-                    } catch(Newtonsoft.Json.JsonReaderException) {
-                         return new DemoContent {
+                } catch (Newtonsoft.Json.JsonReaderException) {
+                    return new DemoContent {
                         Content = "ERROR : Wrong Json Format, Please check again",
                         Pass = false
                     };
-                    }
-                    
-                    /*}
-                    else{
-                        return new DemoContent {
-                        Content = "Wrong Format"ß
-                    };
-                    }*/
-                } else if (pattern == ".xml") {
+                }
+            } else if (pattern == ".xml") {
+                try {
                     var Contents = ReformatXml(req.Content);
                     return new DemoContent {
-                        Content = Contents
+                        Content = Contents,
+                        Pass = true
                     };
-                } else {
-                    System.IO.File.WriteAllText(req.Path, req.Content);
+                } catch (System.Xml.XmlException) {
                     return new DemoContent {
-                        Content = req.Content
+                        Content = "ERROR : Wrong Xml Format, Please check again",
+                        Pass = false
                     };
                 }
+            } else {
+                System.IO.File.WriteAllText(req.Path, req.Content);
+                return new DemoContent {
+                    Content = req.Content
+                };
+            }
         }
 
         [BasicAuthorize(typeof(BasicAuthorizeFilter))]
