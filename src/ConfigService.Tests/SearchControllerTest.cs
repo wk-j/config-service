@@ -13,8 +13,7 @@ public class SearchControllerTest {
     ILogger<SearchController> logger = new LoggerFactory().CreateLogger<SearchController>();
     AppService service = new AppService();
 
-
-    [Fact]
+    [Fact(Skip = "IO")]
     public void GetNodeTest() {
         Console.WriteLine(new DirectoryInfo(".").FullName);
         var settings = new AppSettings {
@@ -30,10 +29,10 @@ public class SearchControllerTest {
         };
         var controller = new SearchController(settings, logger, service);
         var nodes = controller.GetNodes(".");
-        Assert.Equal(2, nodes.Count());
+        Assert.Equal(2, nodes.Value.Count);
     }
 
-    [Fact]
+    [Fact(Skip = "IO")]
     public void ShouldGetProjectNames() {
 
         var settings = new AppSettings {
@@ -50,7 +49,7 @@ public class SearchControllerTest {
         var controller = new SearchController(settings, logger, service);
 
         var rs = controller.GetProjectNames();
-        Assert.Equal(1, rs.Count());
+        Assert.Equal(1, rs.Value.Count());
     }
 
     [Fact(Skip = "IO")]
@@ -68,6 +67,6 @@ public class SearchControllerTest {
         };
         var controller = new SearchController(settings, logger, service);
         var rs = controller.GetProjectSettings("ProjectA");
-        Assert.True(rs.Count() > 0);
+        Assert.True(rs.Value.Files.Count() > 0);
     }
 }
