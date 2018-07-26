@@ -172,10 +172,28 @@ namespace ConfigEditor.Controllers {
         public ActionResult<DemoContent> ShowDemoContent([FromBody] DemoContentRequest req) {
                 var pattern = Path.GetExtension(req.Path);
                 if (pattern == ".json") {
+                    /* 
+                    if(JsonConvert.DeserializeObject<dynamic>(req.Content))
+                    {*/
+                    try {
                     var Contents = ReformatJson(req.Content);
                     return new DemoContent {
-                        Content = Contents
+                        Content = Contents,
+                        Pass = true
                     };
+                    } catch(Newtonsoft.Json.JsonReaderException) {
+                         return new DemoContent {
+                        Content = "ERROR : Wrong Json Format, Please check again",
+                        Pass = false
+                    };
+                    }
+                    
+                    /*}
+                    else{
+                        return new DemoContent {
+                        Content = "Wrong Format"ß
+                    };
+                    }*/
                 } else if (pattern == ".xml") {
                     var Contents = ReformatXml(req.Content);
                     return new DemoContent {
