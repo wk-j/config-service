@@ -20,7 +20,8 @@ namespace ConfigEditor {
                 .UseKestrel(options => {
                     options.ListenAnyIP(5000);
                 })
-                .UseStartup<Startup>();
+                .UseStartup<Startup>()
+                .UseSerilog();
 
         public static async Task Main(string[] args) {
             var logger = Log.Logger = new LoggerConfiguration()
