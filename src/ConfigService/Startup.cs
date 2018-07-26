@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -20,6 +22,13 @@ using Swashbuckle;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace ConfigEditor {
+    public class BrotliCompressionProvider : ICompressionProvider {
+        public string EncodingName => "br";
+        public bool SupportsFlush => true;
+        public Stream CreateStream(Stream outputStream) {
+            return new System.IO.Compression.BrotliStream(outputStream, CompressionMode.Compress);
+        }
+    }
     public class Startup {
         private ILogger<Startup> Logger { get; }
 
@@ -45,10 +54,11 @@ namespace ConfigEditor {
             if (config.Projects.Length == 0) {
                 string path = System.Environment.CurrentDirectory;
                 config.Projects = new Project[]{
-                new Project(){
-                Path = path,
-                Patterns = new string[] { "*.config", "*.json", "*.properties" },
-                Name = new DirectoryInfo(path).Name}
+                    new Project(){
+                        Path = path,
+                        Patterns = new string[] { "*.config", "*.json", "*.properties" },
+                        Name = new DirectoryInfo(path).Name
+                    }
                 };
             }
 
@@ -56,11 +66,19 @@ namespace ConfigEditor {
                 c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
             });
 
+            services.AddResponseCompression(options => {
+                options.Providers.Add<BrotliCompressionProvider>();
+                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] {
+                        "image/svg+xml",
+                        "application/javascript"
+                    });
+            });
             services
                 .AddSingleton<AppSettings>(config)
                 .AddSingleton<AppService>(new AppService())
                 .AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env) {
@@ -74,17 +92,16 @@ namespace ConfigEditor {
                 defaultOptions.FileProvider = new EmbeddedFileProvider(asm, $"{asmName}.wwwroot");
 
                 app.UseDefaultFiles(defaultOptions);
+                app.UseResponseCompression();
                 app.UseStaticFiles(new StaticFileOptions {
                     FileProvider = new EmbeddedFileProvider(asm, $"{asmName}.wwwroot")
                 });
+                app.UseDeveloperExceptionPage();
+
             } else {
                 app.UseDefaultFiles();
+                app.UseResponseCompression();
                 app.UseStaticFiles();
-            }
-
-            if (env.IsDevelopment()) {
-                app.UseDeveloperExceptionPage();
-            } else {
                 app.UseHsts();
             }
 
@@ -93,6 +110,7 @@ namespace ConfigEditor {
                 builder.AllowAnyMethod();
                 builder.AllowAnyOrigin();
             });
+
 
             app.UseSwagger();
             app.UseSwaggerUI(c => {
