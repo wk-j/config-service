@@ -94,19 +94,21 @@ namespace ConfigEditor.Controllers {
                 };
             }
             foreach (var item in root.GetDirectories()) {
-                var hasMatchFiles = project.Patterns.Any(pattern => Directory.GetFiles(item.FullName, pattern, SearchOption.AllDirectories).Count() > 0);
-                if (hasMatchFiles) {
-                    yield return new Node {
-                        IsRoot = false,
-                        Id = item.FullName.GetHashCode(),
-                        Name = item.Name,
-                        Parent = root.FullName.GetHashCode(),
-                        PathFile = root.FullName,
-                        ModifieDate = "",
-                        FileType = Path.GetExtension(item.FullName)
-                    };
-                    foreach (var file in FindNode(item)) {
-                        yield return file;
+                if (!settings.IgnoreFolder.Any(x => x.Equals(item.Name))) {
+                    var hasMatchFiles = project.Patterns.Any(pattern => Directory.GetFiles(item.FullName, pattern, SearchOption.AllDirectories).Count() > 0);
+                    if (hasMatchFiles) {
+                        yield return new Node {
+                            IsRoot = false,
+                            Id = item.FullName.GetHashCode(),
+                            Name = item.Name,
+                            Parent = root.FullName.GetHashCode(),
+                            PathFile = root.FullName,
+                            ModifieDate = "",
+                            FileType = Path.GetExtension(item.FullName)
+                        };
+                        foreach (var file in FindNode(item)) {
+                            yield return file;
+                        }
                     }
                 }
             }
