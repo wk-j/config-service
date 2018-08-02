@@ -17,14 +17,15 @@ namespace ConfigEditor {
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
           WebHost.CreateDefaultBuilder(args)
-                .ConfigureLogging(config => {
-                    config.ClearProviders();
-                })
+          .ConfigureLogging(config => {
+              config.ClearProviders();
+          })
+
                 .UseKestrel(options => {
-                  options.ListenAnyIP(5000);
+                    options.ListenAnyIP(5000);
                 })
                 .UseStartup<Startup>();
-                
+
 
         public static async Task Main(string[] args) {
             var logger = Log.Logger = new LoggerConfiguration()

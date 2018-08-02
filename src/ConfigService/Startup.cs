@@ -43,7 +43,7 @@ namespace ConfigEditor {
         public void ConfigureServices(IServiceCollection services) {
             var config = Configuration.Get<AppSettings>();
 
-            if (config.Login.Length == 0) {
+            if (config.Login == null) {
                 config.Login = new Login[]{
                     new Login(){
                     User = "admin",
@@ -51,7 +51,7 @@ namespace ConfigEditor {
                 };
             }
 
-            if (config.Projects.Length == 0) {
+            if (config.Projects == null) {
                 string path = System.Environment.CurrentDirectory;
                 config.Projects = new Project[]{
                     new Project(){
@@ -59,6 +59,17 @@ namespace ConfigEditor {
                         Patterns = new string[] { "*.config", "*.json", "*.properties" },
                         Name = new DirectoryInfo(path).Name
                     }
+                };
+            }
+
+            if (config.IgnoreFolder == null) {
+                config.IgnoreFolder = new string[] {
+                    "node_modules",
+                    "webapps",
+                    ".git",
+                    "packages",
+                    "target",
+                    "dist"
                 };
             }
 
