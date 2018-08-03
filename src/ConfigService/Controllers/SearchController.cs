@@ -205,7 +205,6 @@ namespace ConfigEditor.Controllers {
                     };
                 }
             } else {
-                System.IO.File.WriteAllText(req.Path, req.Content);
                 return new DemoContent {
                     Content = req.Content,
                     Pass = true

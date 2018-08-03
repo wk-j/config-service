@@ -69,7 +69,8 @@ namespace ConfigEditor {
                     ".git",
                     "packages",
                     "target",
-                    "dist"
+                    "dist",
+                    ".cache"
                 };
             }
 
