@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/bcircle-intern/config-service.svg?branch=master)](https://travis-ci.org/bcircle-intern/config-service)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/10000-bc/Lobby)
+[![sonarcloud](https://sonarcloud.io/api/project_badges/measure?project=config-service&metric=alert_status)](https://sonarcloud.io/dashboard?id=config-service)
+
 
 ## Lessons learned
 
