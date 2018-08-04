@@ -1,0 +1,18 @@
+version: '1.0.{build}'
+image: Visual Studio 2017
+branches:
+  only:
+  - master
+init:
+  - cmd: git config --global core.autocrlf true
+install:
+before_build:
+  - cmd: dotnet --version
+  - cmd: dotnet restore ./src/ConfigService/ConfigService.csproj --verbosity m
+clone_depth: 1
+test_script:
+  - cmd: dotnet tool install -g dotnet-sonarscanner
+  - cmd: dotnet-sonarscanner begin /k:"config-service" /d:sonar.organization="wk-j-github" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="940f6517a5a823b166a31a9173557dedbdbc9401"
+  - cmd: dotnet build src/ConfigService/ConfigService.csproj
+  - cmd: dotnet-sonarscanner end /d:sonar.login="940f6517a5a823b166a31a9173557dedbdbc9401"
+deploy: off
