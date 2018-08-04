@@ -8,6 +8,7 @@
         <Version>0.1.13</Version>
         <IsPackable>true</IsPackable>
         <LangVersion>7.2</LangVersion>
+        <ProjectGuid>{E2CEBBAF-6DF7-41E9-815D-9AD4CF90C846}</ProjectGuid>
     </PropertyGroup>
 
     <ItemGroup>
