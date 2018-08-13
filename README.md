@@ -5,6 +5,9 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/1v6aeg32x8adkuba?svg=true)](https://ci.appveyor.com/project/wk-j/config-service)
 [![sonarcloud](https://sonarcloud.io/api/project_badges/measure?project=config-service&metric=alert_status)](https://sonarcloud.io/dashboard?id=config-service)
 
+[![](https://sourcerer.io/fame/wk-j/bcircle-intern/config-service/images/0)](https://sourcerer.io/fame/wk-j/bcircle-intern/config-service/links/0)
+[![](https://sourcerer.io/fame/wk-j/bcircle-intern/config-service/images/1)](https://sourcerer.io/fame/wk-j/bcircle-intern/config-service/links/1)
+[![](https://sourcerer.io/fame/wk-j/bcircle-intern/config-service/images/2)](https://sourcerer.io/fame/wk-j/bcircle-intern/config-service/links/2)
 
 ## Lessons learned
 
