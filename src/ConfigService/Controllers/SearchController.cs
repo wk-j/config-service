@@ -64,11 +64,13 @@ namespace ConfigEditor.Controllers {
                 return BadRequest(project.Path);
             }
 
-            var file = project.Patterns
+            var files = project.Patterns
                 .Select(x => Directory.EnumerateFiles(project.Path, x, SearchOption.AllDirectories))
-                .SelectMany(x => x);
+                .SelectMany(x => x).ToList();
+            var result = files.Where(x => !settings.IgnoreFolder.Any(i => x.Contains(i))).ToList();
+
             return new GetFile {
-                Files = file
+                Files = result
             };
         }
 
@@ -81,32 +83,36 @@ namespace ConfigEditor.Controllers {
             var files = project.Patterns.Select(pattern => Directory.GetFiles(root.FullName, pattern, SearchOption.TopDirectoryOnly)).SelectMany(x => x);
             foreach (var file in files) {
                 var fileInfo = new FileInfo(file);
-                var date = fileInfo.LastWriteTimeUtc.AddHours(+7);
-                yield return new Node {
-                    IsRoot = false,
-                    Id = fileInfo.FullName.GetHashCode(),
-                    Name = fileInfo.Name,
-                    IsFile = true,
-                    Parent = root.FullName.GetHashCode(),
-                    PathFile = fileInfo.FullName,
-                    ModifieDate = date.ToString("dd/MM/yyyy hh:mm tt"),
-                    FileType = Path.GetExtension(fileInfo.FullName)
-                };
-            }
-            foreach (var item in root.GetDirectories()) {
-                var hasMatchFiles = project.Patterns.Any(pattern => Directory.GetFiles(item.FullName, pattern, SearchOption.AllDirectories).Count() > 0);
-                if (hasMatchFiles) {
+                if (!settings.IgnoreFolder.Any(x => x.Equals(Path.GetDirectoryName(fileInfo.FullName)))) {
+                    var date = fileInfo.LastWriteTimeUtc.AddHours(+7);
                     yield return new Node {
                         IsRoot = false,
-                        Id = item.FullName.GetHashCode(),
-                        Name = item.Name,
+                        Id = fileInfo.FullName.GetHashCode(),
+                        Name = fileInfo.Name,
+                        IsFile = true,
                         Parent = root.FullName.GetHashCode(),
-                        PathFile = root.FullName,
-                        ModifieDate = "",
-                        FileType = Path.GetExtension(item.FullName)
+                        PathFile = fileInfo.FullName,
+                        ModifieDate = date.ToString("dd/MM/yyyy hh:mm tt"),
+                        FileType = Path.GetExtension(fileInfo.FullName)
                     };
-                    foreach (var file in FindNode(item)) {
-                        yield return file;
+                }
+            }
+            foreach (var item in root.GetDirectories()) {
+                if (!settings.IgnoreFolder.Any(x => x.Equals(item.Name))) {
+                    var hasMatchFiles = project.Patterns.Any(pattern => Directory.GetFiles(item.FullName, pattern, SearchOption.AllDirectories).Count() > 0);
+                    if (hasMatchFiles) {
+                        yield return new Node {
+                            IsRoot = false,
+                            Id = item.FullName.GetHashCode(),
+                            Name = item.Name,
+                            Parent = root.FullName.GetHashCode(),
+                            PathFile = root.FullName,
+                            ModifieDate = "",
+                            FileType = Path.GetExtension(item.FullName)
+                        };
+                        foreach (var file in FindNode(item)) {
+                            yield return file;
+                        }
                     }
                 }
             }
@@ -199,9 +205,9 @@ namespace ConfigEditor.Controllers {
                     };
                 }
             } else {
-                System.IO.File.WriteAllText(req.Path, req.Content);
                 return new DemoContent {
-                    Content = req.Content
+                    Content = req.Content,
+                    Pass = true
                 };
             }
         }

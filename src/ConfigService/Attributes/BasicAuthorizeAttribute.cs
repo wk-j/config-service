@@ -14,8 +14,7 @@ namespace ConfigEditor.Attributes {
 
     public class BasicAuthorizeFilter : IAuthorizationFilter {
         private readonly AppSettings settings;
-        public BasicAuthorizeFilter(AppSettings settings)
-        {
+        public BasicAuthorizeFilter(AppSettings settings) {
             this.settings = settings;
         }
 
@@ -31,16 +30,16 @@ namespace ConfigEditor.Attributes {
                         return;
                     }
                 } catch (Exception) {
-                    context.HttpContext.Response.Headers["WWW-Authenticate"] = "Basic";
+                    // context.HttpContext.Response.Headers["WWW-Authenticate"] = "Basic";
                     context.Result = new UnauthorizedResult();
                 }
             }
             // Return authentication type (causes browser to show login dialog)
-            context.HttpContext.Response.Headers["WWW-Authenticate"] = "Basic";
+            // context.HttpContext.Response.Headers["WWW-Authenticate"] = "Basic";
             context.Result = new UnauthorizedResult();
         }
         public bool IsAuthorized(string username, string password) {
-             var hasUser = settings.Login.Any(x => x.User.Equals(username) && x.Pass.Equals(password));
+            var hasUser = settings.Login.Any(x => x.User.Equals(username) && x.Pass.Equals(password));
             // Check that username and password are correct
             return hasUser;
         }

@@ -15,7 +15,7 @@ Task("Build-Web").Does(() => {
 });
 
 Task("Pack").Does(() => {
-    CleanDirectory("src/ConfigService/wwwroot");
+    CleanDirectory($"src/{name}/wwwroot");
     CleanDirectory("publish");
     PS.StartProcess("npm run build", "../ConfigInterface");
     DotNetCorePack($"src/{name}", new DotNetCorePackSettings {
